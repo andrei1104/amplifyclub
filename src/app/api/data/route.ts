@@ -99,11 +99,16 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
     const { files } = await listRes.json()
     if (!files?.length) return { weeklySalesMap: {}, weeklyAmplify: {} }
 
-    // Filtra arquivos no range
+    // Filtra arquivos no range — inclui se há qualquer sobreposição com o período
     const relevant = files.filter((f: any) => {
       const m = f.name.match(/(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})/)
-      if (!m) return false
-      return m[2] >= sinceDate && m[2] <= untilDate
+      if (m) {
+        // weekStart <= untilDate E weekEnd >= sinceDate (sobreposição)
+        return m[1] <= untilDate && m[2] >= sinceDate
+      }
+      // Fallback: filtra pelo modifiedTime se não tiver datas no nome
+      const mod = (f.modifiedTime ?? '').slice(0, 10)
+      return mod >= sinceDate && mod <= untilDate
     })
 
     if (!relevant.length) return { weeklySalesMap: {}, weeklyAmplify: {} }
@@ -123,14 +128,27 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
 
           const header = rows[0] as string[]
           const idx    = (n: string) => header.findIndex(h => String(h).toLowerCase().includes(n.toLowerCase()))
-          const iNome  = idx('criador')
-          const iGmv   = idx('GMV de Afiliado') !== -1 ? idx('GMV de Afiliado') : idx('GMV')
-          const iCom   = idx('Comissão estimada') !== -1 ? idx('Comissão estimada') : idx('Comiss')
 
-          const resumoRow = rows.find(
-            r => String(r[iNome]).toLowerCase().includes('resumo') || String(r[0]).toLowerCase().includes('resumo')
-          )
-          const dataRows = rows.slice(1).filter(r => r[iNome] && !['--', '-'].includes(String(r[iNome])))
+          // "Nome do criador" — formato real do TikTok Partner Center
+          const iNome = idx('nome do criador') !== -1 ? idx('nome do criador') : idx('criador')
+
+          // "Valor Bruto da Mercadoria (GMV) de Afiliado" — coluna real do relatório
+          const iGmv =
+            idx('valor bruto da mercadoria') !== -1 ? idx('valor bruto da mercadoria') :
+            idx('gmv de afiliado')           !== -1 ? idx('gmv de afiliado') :
+            idx('gmv')
+
+          // Comissão — pode não existir no relatório, fica 0 se ausente
+          const iCom = idx('comissão estimada') !== -1 ? idx('comissão estimada') : idx('comiss')
+
+          // Linha de resumo: identifica pela coluna 0 = "Resumo"
+          const resumoRow = rows.find(r => String(r[0]).toLowerCase() === 'resumo')
+
+          // Linhas de dados: exclui resumo e linhas sem criador válido
+          const dataRows = rows.slice(1).filter(r => {
+            const nome = String(r[iNome] ?? '').trim()
+            return nome && nome !== '-' && nome !== '--' && nome.toLowerCase() !== 'resumo'
+          })
 
           const amplifyGmv = resumoRow
             ? parseBRL(resumoRow[iGmv])
@@ -140,7 +158,6 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
             : dataRows.reduce((s: number, r: any) => s + parseBRL(r[iCom]), 0)
 
           const sales = dataRows
-            .filter(r => !['Resumo', '--', '-'].includes(String(r[iNome])))
             .map(r => ({
               creator:  cleanHandle(String(r[iNome] ?? '')),
               gmv:      parseBRL(r[iGmv]),
