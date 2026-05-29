@@ -20,10 +20,6 @@ async function fetchCreators(handleFilter?: string) {
       database_id: CREATORS_DB,
       start_cursor: cursor,
       page_size: 100,
-      filter: {
-        property: 'Status',
-        status: { equals: 'Ativo' },
-      },
     })
     results.push(...res.results)
     cursor = res.has_more ? (res.next_cursor ?? undefined) : undefined

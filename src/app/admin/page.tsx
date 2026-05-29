@@ -24,17 +24,28 @@ const fmtBRLd = (n: number) => 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumF
 const fmtWeek = (iso: string) => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}/${d.getMonth() + 1}` }
 const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 
-const CAT_CONFIG: Record<string, { color: string; bg: string; badge: string }> = {
-  Diamond: { color: '#60A5FA', bg: 'rgba(96,165,250,0.12)', badge: '💎' },
-  Gold:    { color: '#FBBF24', bg: 'rgba(251,191,36,0.12)',  badge: '🥇' },
-  Silver:  { color: '#A3A3A3', bg: 'rgba(163,163,163,0.12)', badge: '🥈' },
-  Start:   { color: '#FB923C', bg: 'rgba(251,146,60,0.12)',  badge: '🚀' },
-  Safira:  { color: '#C084FC', bg: 'rgba(192,132,252,0.12)', badge: '💜' },
-  Origens: { color: '#34D399', bg: 'rgba(52,211,153,0.12)',  badge: '🌱' },
-  Desvinculada: { color: '#6B7280', bg: 'rgba(107,114,128,0.12)', badge: '⛔' },
+const CAT_CONFIG: Record<string, { color: string; bg: string; border: string; badge: string }> = {
+  Diamond: { color: '#2563EB', bg: 'rgba(37,99,235,0.10)',  border: 'rgba(37,99,235,0.20)',  badge: '💎' },
+  Gold:    { color: '#D97706', bg: 'rgba(217,119,6,0.10)',   border: 'rgba(217,119,6,0.20)',   badge: '🥇' },
+  Silver:  { color: '#64748B', bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.20)', badge: '🥈' },
+  Start:   { color: '#1B3FE4', bg: 'rgba(27,63,228,0.10)',   border: 'rgba(27,63,228,0.20)',   badge: '🚀' },
+  Safira:  { color: '#7C3AED', bg: 'rgba(124,58,237,0.10)',  border: 'rgba(124,58,237,0.20)',  badge: '💜' },
+  Origens: { color: '#059669', bg: 'rgba(5,150,105,0.10)',   border: 'rgba(5,150,105,0.20)',   badge: '🌱' },
+  Desvinculada: { color: '#94A3B8', bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.20)', badge: '⛔' },
 }
 const CATEGORIAS = ['Diamond', 'Gold', 'Silver', 'Start', 'Safira', 'Origens']
-const CHART_COLORS = ['#1B3FE4', '#E4003A', '#FBBF24', '#34D399', '#C084FC', '#FB923C']
+const CHART_COLORS = ['#1B3FE4', '#E4003A', '#D97706', '#059669', '#7C3AED', '#FB923C']
+
+// ── Amplify Logo ──────────────────────────────────────────────
+function AmplifyLogo({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 14 L10 4 L14 4 L6 14 L14 24 L10 24 Z" fill="#1B3FE4"/>
+      <path d="M10 14 L18 4 L22 4 L14 14 L22 24 L18 24 Z" fill="#E4003A"/>
+      <path d="M16 14 L21 8 L21 20 Z" fill="white"/>
+    </svg>
+  )
+}
 
 export default function Admin() {
   const router = useRouter()
@@ -74,7 +85,6 @@ export default function Admin() {
 
   const { summary: s, creators, weeklyAmplifyData, weeklyByCreator } = data
 
-  // Filtra e ordena
   const visible = creators
     .filter(c => {
       const matchSearch = !search || c.nome.toLowerCase().includes(search.toLowerCase()) || c.handle.includes(search.toLowerCase())
@@ -86,12 +96,10 @@ export default function Admin() {
       return b[sortBy] - a[sortBy]
     })
 
-  // Chart data
   const chartData = selected && weeklyByCreator[selected.handle]
     ? weeklyByCreator[selected.handle].map(w => ({ ...w, amplifyRevenue: w.comissao * 0.10 }))
     : weeklyAmplifyData
 
-  // Categoria breakdown para bar chart
   const catBarData = CATEGORIAS.map(cat => ({
     name: cat,
     gmv: s.byCategoria[cat]?.gmv ?? 0,
@@ -100,46 +108,42 @@ export default function Admin() {
   })).filter(d => d.count > 0)
 
   return (
-    <div style={{ background: '#080C1A', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: 'white' }}>
+    <div style={{ background: '#F4F6FB', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: '#1A1F3C' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box }
         ::-webkit-scrollbar { width: 4px; height: 4px }
         ::-webkit-scrollbar-track { background: transparent }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px }
+        ::-webkit-scrollbar-thumb { background: rgba(27,63,228,0.15); border-radius: 2px }
         .cont { max-width: 1280px; margin: 0 auto; padding: 1.5rem 1.25rem }
         .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px }
         .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px }
         .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
-        input::placeholder { color: rgba(255,255,255,0.25) }
+        input::placeholder { color: #B0BFEE }
         @media(max-width:768px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
       `}</style>
 
       {/* Header */}
       <header style={{
-        background: 'rgba(255,255,255,0.03)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.92)',
+        borderBottom: '1px solid rgba(27,63,228,0.08)',
         padding: '0.875rem 1.25rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(20px)',
+        boxShadow: '0 1px 16px rgba(27,63,228,0.07)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '8px',
-            background: 'linear-gradient(135deg, #1B3FE4, #E4003A)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '14px', fontWeight: 900,
-          }}>A</div>
+          <AmplifyLogo size={32} />
           <div>
-            <div style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '-0.01em' }}>Amplify</div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: 500 }}>Creator Performance · Admin</div>
+            <div style={{ fontWeight: 800, fontSize: '14px', letterSpacing: '-0.01em', color: '#1A1F3C' }}>Amplify</div>
+            <div style={{ fontSize: '10px', color: '#8B95C4', fontWeight: 500 }}>Creator Performance · Admin</div>
           </div>
         </div>
 
-        {/* Date filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Período:</span>
+          <span style={{ fontSize: '11px', color: '#8B95C4', fontWeight: 600 }}>Período:</span>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={dateInputStyle} />
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>até</span>
+          <span style={{ fontSize: '11px', color: '#B0BFEE' }}>até</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={dateInputStyle} />
           <button onClick={() => { setApplied({ start: startDate, end: endDate }) }}
             style={btnPrimary}>Filtrar</button>
@@ -156,10 +160,10 @@ export default function Admin() {
 
         {/* KPI Row */}
         <div className="g4" style={{ marginTop: '1.25rem', marginBottom: '1.25rem' }}>
-          <KpiCard label="Creators ativos" value={String(s.active)} sub={`de ${s.total} cadastrados`} color="#60A5FA" />
+          <KpiCard label="Creators ativos" value={String(s.active)} sub={`de ${s.total} cadastrados`} color="#2563EB" />
           <KpiCard label="GMV total" value={fmtBRL(s.totalGmv)} sub="período selecionado" color="#1B3FE4" accent />
-          <KpiCard label="Comissão estimada" value={fmtBRL(s.totalCom)} sub="TikTok → creators" color="#FBBF24" />
-          <KpiCard label="Receita Amplify" value={fmtBRL(s.amplifyTotal)} sub="10% da comissão" color="#34D399" accent />
+          <KpiCard label="Comissão estimada" value={fmtBRL(s.totalCom)} sub="TikTok → creators" color="#D97706" />
+          <KpiCard label="Receita Amplify" value={fmtBRL(s.amplifyTotal)} sub="10% da comissão" color="#059669" accent />
         </div>
 
         {/* Categoria pills + search */}
@@ -172,11 +176,11 @@ export default function Admin() {
                 <button key={cat} onClick={() => setCatFilter(cat)}
                   style={{
                     fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '100px',
-                    border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
-                    background: active ? (cfg?.color ?? '#1B3FE4') : 'transparent',
-                    color: active ? 'white' : 'rgba(255,255,255,0.5)',
+                    border: active ? 'none' : `1px solid ${cfg?.border ?? 'rgba(27,63,228,0.15)'}`,
+                    background: active ? (cfg?.color ?? '#1B3FE4') : 'white',
+                    color: active ? 'white' : (cfg?.color ?? '#6B78B0'),
                     cursor: 'pointer', transition: 'all 0.15s',
-                    boxShadow: active ? `0 0 12px ${cfg?.color ?? '#1B3FE4'}44` : 'none',
+                    boxShadow: active ? `0 2px 10px ${cfg?.color ?? '#1B3FE4'}35` : '0 1px 4px rgba(27,63,228,0.06)',
                   }}>
                   {cat === 'all' ? 'Todos' : `${cfg?.badge} ${cat}`}
                   {cat !== 'all' && s.byCategoria[cat]?.count > 0 && (
@@ -193,9 +197,10 @@ export default function Admin() {
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar creator..."
             style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '10px', padding: '7px 12px', fontSize: '12px', color: 'white',
+              background: 'white', border: '1px solid rgba(27,63,228,0.15)',
+              borderRadius: '10px', padding: '7px 12px', fontSize: '12px', color: '#1A1F3C',
               fontFamily: 'inherit', outline: 'none', width: '200px',
+              boxShadow: '0 1px 4px rgba(27,63,228,0.06)',
             }}
           />
         </div>
@@ -210,10 +215,10 @@ export default function Admin() {
                   {selected ? `📊 ${selected.nome || selected.handle}` : 'Evolução semanal — Amplify'}
                 </div>
                 {selected && (
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px' }}>
+                  <div style={{ fontSize: '11px', color: '#8B95C4', marginTop: '2px' }}>
                     GMV {fmtBRL(selected.gmv)} · Receita Amplify {fmtBRLd(selected.amplifyRevenue)}
                     <button onClick={() => setSelected(null)}
-                      style={{ marginLeft: '8px', fontSize: '10px', color: '#60A5FA', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      style={{ marginLeft: '8px', fontSize: '10px', color: '#1B3FE4', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                       ← voltar
                     </button>
                   </div>
@@ -223,9 +228,10 @@ export default function Admin() {
                 {(['gmv', 'amplifyRevenue'] as const).map(m => (
                   <button key={m} onClick={() => setMetric(m)}
                     style={{
-                      fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px', border: 'none',
-                      background: metric === m ? '#1B3FE4' : 'rgba(255,255,255,0.08)',
-                      color: metric === m ? 'white' : 'rgba(255,255,255,0.4)', cursor: 'pointer',
+                      fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px',
+                      border: `1px solid ${metric === m ? '#1B3FE4' : 'rgba(27,63,228,0.15)'}`,
+                      background: metric === m ? '#1B3FE4' : 'white',
+                      color: metric === m ? 'white' : '#8B95C4', cursor: 'pointer',
                     }}>
                     {m === 'gmv' ? 'GMV' : 'Receita Amplify'}
                   </button>
@@ -237,17 +243,17 @@ export default function Admin() {
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="agrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#1B3FE4" stopOpacity={0.3} />
+                      <stop offset="5%" stopColor="#1B3FE4" stopOpacity={0.20} />
                       <stop offset="95%" stopColor="#1B3FE4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                  <XAxis dataKey="date" tickFormatter={fmtWeek} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(27,63,228,0.06)" vertical={false} />
+                  <XAxis dataKey="date" tickFormatter={fmtWeek} tick={{ fontSize: 10, fill: '#8B95C4' }} axisLine={false} tickLine={false} />
                   <YAxis hide />
                   <Tooltip
-                    contentStyle={{ background: '#0D1227', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontSize: '12px' }}
-                    labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
-                    itemStyle={{ color: '#60A5FA' }}
+                    contentStyle={{ background: 'white', border: '1px solid rgba(27,63,228,0.12)', borderRadius: '10px', fontSize: '12px', boxShadow: '0 4px 16px rgba(27,63,228,0.10)' }}
+                    labelStyle={{ color: '#8B95C4' }}
+                    itemStyle={{ color: '#1B3FE4' }}
                     formatter={(v: number) => [fmtBRLd(v), metric === 'gmv' ? 'GMV' : 'Receita Amplify']}
                     labelFormatter={l => fmtDate(l)}
                   />
@@ -256,7 +262,7 @@ export default function Admin() {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>
+              <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B0BFEE', fontSize: '13px' }}>
                 Sem dados suficientes para o gráfico
               </div>
             )}
@@ -267,10 +273,10 @@ export default function Admin() {
               const pct  = prev[metric] ? (diff / prev[metric] * 100) : 0
               return (
                 <div style={{ marginTop: '10px', display: 'flex', gap: '16px', fontSize: '11px' }}>
-                  <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    Última semana: <strong style={{ color: 'white' }}>{fmtBRLd(last[metric] ?? 0)}</strong>
+                  <span style={{ color: '#8B95C4' }}>
+                    Última semana: <strong style={{ color: '#1A1F3C' }}>{fmtBRLd(last[metric] ?? 0)}</strong>
                   </span>
-                  <span style={{ color: diff >= 0 ? '#34D399' : '#F87171', fontWeight: 700 }}>
+                  <span style={{ color: diff >= 0 ? '#059669' : '#DC2626', fontWeight: 700 }}>
                     {diff >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}% vs semana anterior
                   </span>
                 </div>
@@ -283,10 +289,10 @@ export default function Admin() {
             <div style={sectionLabel as any}>GMV por categoria</div>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={catBarData} barCategoryGap="35%">
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.35)' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#8B95C4' }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip
-                  contentStyle={{ background: '#0D1227', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontSize: '12px' }}
+                  contentStyle={{ background: 'white', border: '1px solid rgba(27,63,228,0.12)', borderRadius: '10px', fontSize: '12px', boxShadow: '0 4px 16px rgba(27,63,228,0.10)' }}
                   formatter={(v: number) => [fmtBRL(v), 'GMV']}
                 />
                 <Bar dataKey="gmv" radius={[6, 6, 0, 0]}>
@@ -296,7 +302,6 @@ export default function Admin() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            {/* Legenda */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginTop: '10px' }}>
               {catBarData.map(cat => (
                 <div key={cat.name} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -304,10 +309,10 @@ export default function Admin() {
                     width: '8px', height: '8px', borderRadius: '2px', flexShrink: 0,
                     background: CAT_CONFIG[cat.name]?.color ?? '#666',
                   }} />
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                  <span style={{ fontSize: '10px', color: '#8B95C4' }}>
                     {CAT_CONFIG[cat.name]?.badge} {cat.name}
                   </span>
-                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, marginLeft: 'auto' }}>
+                  <span style={{ fontSize: '10px', color: '#1A1F3C', fontWeight: 700, marginLeft: 'auto' }}>
                     {cat.count}
                   </span>
                 </div>
@@ -327,9 +332,10 @@ export default function Admin() {
                 <button key={k} onClick={() => setSortBy(k)}
                   style={{
                     fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px',
-                    border: 'none', cursor: 'pointer',
-                    background: sortBy === k ? 'rgba(27,63,228,0.3)' : 'rgba(255,255,255,0.06)',
-                    color: sortBy === k ? '#60A5FA' : 'rgba(255,255,255,0.35)',
+                    border: `1px solid ${sortBy === k ? '#1B3FE4' : 'rgba(27,63,228,0.15)'}`,
+                    cursor: 'pointer',
+                    background: sortBy === k ? 'rgba(27,63,228,0.10)' : 'white',
+                    color: sortBy === k ? '#1B3FE4' : '#8B95C4',
                   }}>
                   {k === 'gmv' ? 'GMV ↓' : k === 'comissao' ? 'Comissão ↓' : 'Nome A-Z'}
                 </button>
@@ -340,11 +346,11 @@ export default function Admin() {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <tr style={{ borderBottom: '1px solid rgba(27,63,228,0.08)' }}>
                   {['#', 'Creator', '@ TikTok', 'Categoria', 'GMV', 'Comissão', 'Receita Amplify'].map((h, i) => (
                     <th key={h} style={{
                       padding: '8px 10px', textAlign: i >= 4 ? 'right' : 'left',
-                      fontWeight: 700, color: 'rgba(255,255,255,0.25)', fontSize: '10px',
+                      fontWeight: 700, color: '#8B95C4', fontSize: '10px',
                       letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap',
                     }}>{h}</th>
                   ))}
@@ -358,38 +364,38 @@ export default function Admin() {
                     <tr key={c.id}
                       onClick={() => setSelected(isSelected ? null : c)}
                       style={{
-                        borderBottom: '1px solid rgba(255,255,255,0.04)',
-                        background: isSelected ? 'rgba(27,63,228,0.12)' : 'transparent',
+                        borderBottom: '1px solid rgba(27,63,228,0.05)',
+                        background: isSelected ? 'rgba(27,63,228,0.06)' : 'transparent',
                         borderLeft: isSelected ? '2px solid #1B3FE4' : '2px solid transparent',
                         cursor: 'pointer', transition: 'all 0.1s',
                       }}
-                      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)' }}
+                      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(27,63,228,0.03)' }}
                       onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                     >
-                      <td style={{ padding: '10px 10px', color: 'rgba(255,255,255,0.25)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '10px 10px', color: '#B0BFEE', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                         {i + 1}
                       </td>
-                      <td style={{ padding: '10px 10px', fontWeight: 600, color: 'white', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '10px 10px', fontWeight: 600, color: '#1A1F3C', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.nome || '—'}
                       </td>
-                      <td style={{ padding: '10px 10px', color: 'rgba(255,255,255,0.45)', fontSize: '11px', fontFamily: "'DM Mono', monospace" }}>
+                      <td style={{ padding: '10px 10px', color: '#8B95C4', fontSize: '11px', fontFamily: "'DM Mono', monospace" }}>
                         @{c.handle}
                       </td>
                       <td style={{ padding: '10px 10px' }}>
                         <span style={{
                           fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: '100px',
-                          background: cfg.bg, color: cfg.color,
+                          background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`,
                         }}>
                           {cfg.badge} {c.categoria}
                         </span>
                       </td>
-                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: c.gmv > 0 ? 'white' : 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: c.gmv > 0 ? '#1A1F3C' : '#B0BFEE', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                         {c.gmv > 0 ? fmtBRL(c.gmv) : '—'}
                       </td>
-                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 600, color: c.comissao > 0 ? '#FBBF24' : 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 600, color: c.comissao > 0 ? '#D97706' : '#B0BFEE', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                         {c.comissao > 0 ? fmtBRL(c.comissao) : '—'}
                       </td>
-                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: c.amplifyRevenue > 0 ? '#34D399' : 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 700, color: c.amplifyRevenue > 0 ? '#059669' : '#B0BFEE', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                         {c.amplifyRevenue > 0 ? fmtBRLd(c.amplifyRevenue) : '—'}
                       </td>
                     </tr>
@@ -398,17 +404,17 @@ export default function Admin() {
               </tbody>
               {visible.length > 0 && (
                 <tfoot>
-                  <tr style={{ borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
-                    <td colSpan={4} style={{ padding: '10px 10px', fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  <tr style={{ borderTop: '1px solid rgba(27,63,228,0.08)', background: 'rgba(27,63,228,0.03)' }}>
+                    <td colSpan={4} style={{ padding: '10px 10px', fontSize: '10px', fontWeight: 700, color: '#8B95C4', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                       Total
                     </td>
-                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: 'white', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#1A1F3C', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                       {fmtBRL(visible.reduce((acc, c) => acc + c.gmv, 0))}
                     </td>
-                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#FBBF24', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#D97706', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                       {fmtBRL(visible.reduce((acc, c) => acc + c.comissao, 0))}
                     </td>
-                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#34D399', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={{ padding: '10px 10px', textAlign: 'right', fontWeight: 800, color: '#059669', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                       {fmtBRLd(visible.reduce((acc, c) => acc + c.amplifyRevenue, 0))}
                     </td>
                   </tr>
@@ -417,13 +423,13 @@ export default function Admin() {
             </table>
           </div>
           {visible.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.2)', fontSize: '13px' }}>
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#B0BFEE', fontSize: '13px' }}>
               Nenhum creator encontrado
             </div>
           )}
         </div>
 
-        <div style={{ marginTop: '12px', fontSize: '10px', color: 'rgba(255,255,255,0.2)', textAlign: 'right' }}>
+        <div style={{ marginTop: '12px', fontSize: '10px', color: '#B0BFEE', textAlign: 'right' }}>
           Atualizado em {new Date(s.updatedAt).toLocaleString('pt-BR')} · Cache 5 min
         </div>
       </div>
@@ -435,59 +441,60 @@ export default function Admin() {
 function KpiCard({ label, value, sub, color, accent }: { label: string; value: string; sub: string; color: string; accent?: boolean }) {
   return (
     <div style={{
-      background: accent ? `linear-gradient(135deg, ${color}18, ${color}08)` : 'rgba(255,255,255,0.03)',
-      border: `1px solid ${accent ? color + '30' : 'rgba(255,255,255,0.07)'}`,
+      background: accent ? `linear-gradient(135deg, ${color}12, white)` : 'white',
+      border: `1px solid ${accent ? color + '25' : 'rgba(27,63,228,0.09)'}`,
       borderRadius: '14px', padding: '1.1rem 1.25rem',
+      boxShadow: accent ? `0 4px 20px ${color}12` : '0 1px 8px rgba(27,63,228,0.05)',
     }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: '#8B95C4', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
         {label}
       </div>
       <div style={{ fontSize: '1.5rem', fontWeight: 800, color, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
         {value}
       </div>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>{sub}</div>
+      <div style={{ fontSize: '10px', color: '#B0BFEE', fontWeight: 500 }}>{sub}</div>
     </div>
   )
 }
 
 function LoadingScreen() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#080C1A', flexDirection: 'column', gap: '14px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#F4F6FB', flexDirection: 'column', gap: '14px' }}>
       <div style={{
-        width: '36px', height: '36px', border: '2px solid rgba(255,255,255,0.08)',
+        width: '36px', height: '36px', border: '2px solid rgba(27,63,228,0.12)',
         borderTop: '2px solid #1B3FE4', borderRadius: '50%', animation: 'spin 0.8s linear infinite',
       }} />
-      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>Carregando dados...</div>
+      <div style={{ fontSize: '13px', color: '#8B95C4', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>Carregando dados...</div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
 }
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
+  background: 'white',
+  border: '1px solid rgba(27,63,228,0.09)',
   borderRadius: '16px', padding: '1.25rem',
+  boxShadow: '0 1px 8px rgba(27,63,228,0.05)',
 }
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)',
+  fontSize: '11px', fontWeight: 700, color: '#8B95C4',
   letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0',
 }
 
 const dateInputStyle: React.CSSProperties = {
   fontSize: '11px', padding: '4px 8px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)',
-  color: 'white', outline: 'none', fontFamily: "'DM Sans', sans-serif",
-  colorScheme: 'dark',
+  border: '1px solid rgba(27,63,228,0.15)', background: 'white',
+  color: '#1A1F3C', outline: 'none', fontFamily: "'DM Sans', sans-serif",
 }
 
 const btnPrimary: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '8px',
+  fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '8px',
   border: 'none', background: '#1B3FE4', color: 'white', cursor: 'pointer',
 }
 
 const btnGhost: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
-  color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+  fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: '8px',
+  border: '1px solid rgba(27,63,228,0.15)', background: 'white',
+  color: '#6B78B0', cursor: 'pointer',
 }

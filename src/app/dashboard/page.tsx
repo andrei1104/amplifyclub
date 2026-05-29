@@ -22,19 +22,31 @@ const fmtBRLd = (n: number) => 'R$\u00a0' + n.toLocaleString('pt-BR', { minimumF
 const fmtWeek = (iso: string) => { const d = new Date(iso + 'T00:00:00'); return `${d.getDate()}/${d.getMonth() + 1}` }
 const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 
-const CAT_CONFIG: Record<string, { color: string; bg: string; badge: string; label: string }> = {
-  Diamond: { color: '#60A5FA', bg: 'rgba(96,165,250,0.15)', badge: '💎', label: 'Diamond' },
-  Gold:    { color: '#FBBF24', bg: 'rgba(251,191,36,0.15)',  badge: '🥇', label: 'Gold'    },
-  Silver:  { color: '#A3A3A3', bg: 'rgba(163,163,163,0.15)', badge: '🥈', label: 'Silver'  },
-  Start:   { color: '#FB923C', bg: 'rgba(251,146,60,0.15)',  badge: '🚀', label: 'Start'   },
-  Safira:  { color: '#C084FC', bg: 'rgba(192,132,252,0.15)', badge: '💜', label: 'Safira'  },
-  Origens: { color: '#34D399', bg: 'rgba(52,211,153,0.15)',  badge: '🌱', label: 'Origens' },
+const CAT_CONFIG: Record<string, { color: string; bg: string; badge: string; label: string; border: string }> = {
+  Diamond: { color: '#2563EB', bg: 'rgba(37,99,235,0.10)',  border: 'rgba(37,99,235,0.20)',  badge: '💎', label: 'Diamond' },
+  Gold:    { color: '#D97706', bg: 'rgba(217,119,6,0.10)',   border: 'rgba(217,119,6,0.20)',   badge: '🥇', label: 'Gold'    },
+  Silver:  { color: '#64748B', bg: 'rgba(100,116,139,0.10)', border: 'rgba(100,116,139,0.20)', badge: '🥈', label: 'Silver'  },
+  Start:   { color: '#1B3FE4', bg: 'rgba(27,63,228,0.10)',   border: 'rgba(27,63,228,0.20)',   badge: '🚀', label: 'Start'   },
+  Safira:  { color: '#7C3AED', bg: 'rgba(124,58,237,0.10)',  border: 'rgba(124,58,237,0.20)',  badge: '💜', label: 'Safira'  },
+  Origens: { color: '#059669', bg: 'rgba(5,150,105,0.10)',   border: 'rgba(5,150,105,0.20)',   badge: '🌱', label: 'Origens' },
 }
 
 const CHART_METRICS = [
-  { key: 'gmv',      label: 'Meu GMV',     color: '#1B3FE4' },
-  { key: 'comissao', label: 'Comissão',     color: '#FBBF24' },
+  { key: 'gmv',      label: 'Meu GMV',  color: '#1B3FE4' },
+  { key: 'comissao', label: 'Comissão', color: '#D97706' },
 ] as const
+
+// ── Amplify Logo SVG ──────────────────────────────────────────
+function AmplifyLogo({ size = 28 }: { size?: number }) {
+  const s = size / 28
+  return (
+    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 14 L10 4 L14 4 L6 14 L14 24 L10 24 Z" fill="#1B3FE4"/>
+      <path d="M10 14 L18 4 L22 4 L14 14 L22 24 L18 24 Z" fill="#E4003A"/>
+      <path d="M16 14 L21 8 L21 20 Z" fill="white"/>
+    </svg>
+  )
+}
 
 export default function CreatorDashboard() {
   const router = useRouter()
@@ -93,58 +105,51 @@ export default function CreatorDashboard() {
   const diff = lastWeek && prevWeek ? (lastWeek[metric] ?? 0) - (prevWeek[metric] ?? 0) : 0
   const pct  = prevWeek?.[metric] ? (diff / prevWeek[metric] * 100) : 0
 
-  // Ranking estimado simples baseado na categoria
-  const catOrder: Record<string, number> = { Safira: 0, Diamond: 1, Gold: 2, Silver: 3, Start: 4, Origens: 5 }
-  const catRank = catOrder[user.categoria] ?? 5
-
   return (
-    <div style={{ background: '#080C1A', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: 'white' }}>
+    <div style={{ background: '#F4F6FB', minHeight: '100vh', fontFamily: "'DM Sans', sans-serif", color: '#1A1F3C' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box }
         ::-webkit-scrollbar { width: 4px }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px }
+        ::-webkit-scrollbar-thumb { background: rgba(27,63,228,0.15); border-radius: 2px }
         .cont { max-width: 900px; margin: 0 auto; padding: 1.5rem 1.25rem }
         .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
         .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px }
-        input[type="date"] { color-scheme: dark }
+        input[type="date"] { color-scheme: light }
         @media(max-width:600px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
       `}</style>
 
       {/* Header */}
       <header style={{
-        background: 'rgba(255,255,255,0.02)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        background: 'rgba(255,255,255,0.92)',
+        borderBottom: '1px solid rgba(27,63,228,0.08)',
         padding: '0.875rem 1.25rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(20px)',
+        boxShadow: '0 1px 16px rgba(27,63,228,0.07)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '8px',
-            background: 'linear-gradient(135deg, #1B3FE4, #E4003A)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '14px', fontWeight: 900,
-          }}>A</div>
+          <AmplifyLogo size={32} />
           <div>
-            <div style={{ fontWeight: 800, fontSize: '14px' }}>
+            <div style={{ fontWeight: 800, fontSize: '14px', color: '#1A1F3C' }}>
               {user.name || `@${user.handle}`}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '1px' }}>
               <span style={{
-                fontSize: '10px', fontWeight: 700, padding: '1px 7px', borderRadius: '100px',
-                background: cfg.bg, color: cfg.color,
+                fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '100px',
+                background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`,
               }}>
                 {cfg.badge} {cfg.label}
               </span>
-              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>@{user.handle}</span>
+              <span style={{ fontSize: '10px', color: '#8B95C4', fontFamily: "'DM Mono', monospace" }}>@{user.handle}</span>
             </div>
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>Período:</span>
+          <span style={{ fontSize: '11px', color: '#8B95C4' }}>Período:</span>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={dateInputStyle} />
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)' }}>até</span>
+          <span style={{ fontSize: '11px', color: '#B0BFEE' }}>até</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={dateInputStyle} />
           <button onClick={() => setApplied({ start: startDate, end: endDate })} style={btnPrimary}>
             Filtrar
@@ -163,36 +168,38 @@ export default function CreatorDashboard() {
 
         {/* Hero do creator */}
         <div style={{
-          background: `linear-gradient(135deg, ${cfg.color}18 0%, rgba(255,255,255,0.02) 100%)`,
-          border: `1px solid ${cfg.color}25`,
+          background: `linear-gradient(135deg, ${cfg.color}12 0%, rgba(255,255,255,0.6) 100%)`,
+          border: `1px solid ${cfg.border}`,
           borderRadius: '20px', padding: '1.5rem',
           marginTop: '1.25rem', marginBottom: '1.25rem',
           display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap',
+          boxShadow: `0 4px 24px ${cfg.color}10`,
         }}>
-          {/* Avatar placeholder */}
           <div style={{
             width: '64px', height: '64px', borderRadius: '50%',
-            background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}66)`,
+            background: `linear-gradient(135deg, ${cfg.color}30, ${cfg.color}10)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '28px', flexShrink: 0,
+            border: `2px solid ${cfg.border}`,
           }}>
             {cfg.badge}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '4px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '4px', color: '#1A1F3C' }}>
               {user.name || `@${user.handle}`}
             </div>
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ fontSize: '13px', color: '#8B95C4', fontFamily: "'DM Mono', monospace" }}>
               @{user.handle}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ fontSize: '10px', color: '#8B95C4', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Nível
             </div>
             <div style={{
-              fontSize: '1.1rem', fontWeight: 800, color: cfg.color,
+              fontSize: '1rem', fontWeight: 800, color: cfg.color,
               padding: '6px 16px', background: cfg.bg, borderRadius: '100px',
+              border: `1px solid ${cfg.border}`,
             }}>
               {cfg.badge} {cfg.label}
             </div>
@@ -212,29 +219,29 @@ export default function CreatorDashboard() {
             label="Comissão estimada"
             value={creator ? fmtBRL(creator.comissao) : 'R$\u00a00'}
             sub="ganhos do TikTok"
-            color="#FBBF24"
+            color="#D97706"
           />
           <KpiCard
             label="Status"
             value={creator && creator.gmv > 0 ? 'Ativo ✓' : 'Sem vendas'}
             sub="período selecionado"
-            color={creator && creator.gmv > 0 ? '#34D399' : '#6B7280'}
+            color={creator && creator.gmv > 0 ? '#059669' : '#94A3B8'}
           />
         </div>
 
         {/* Mensagem motivacional */}
         {creator && creator.gmv > 0 && (
           <div style={{
-            background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.2)',
+            background: 'rgba(5,150,105,0.06)', border: '1px solid rgba(5,150,105,0.18)',
             borderRadius: '12px', padding: '12px 16px', marginBottom: '1.25rem',
             display: 'flex', alignItems: 'center', gap: '10px',
           }}>
             <span style={{ fontSize: '18px' }}>🎯</span>
             <div>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#34D399' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700, color: '#059669' }}>
                 Você gerou {fmtBRL(creator.gmv)} em GMV!
               </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+              <div style={{ fontSize: '11px', color: '#8B95C4', marginTop: '2px' }}>
                 Sua comissão estimada do TikTok é de {fmtBRLd(creator.comissao)}.
               </div>
             </div>
@@ -251,9 +258,10 @@ export default function CreatorDashboard() {
                   <button key={m.key} onClick={() => setMetric(m.key)}
                     style={{
                       fontSize: '10px', fontWeight: 700, padding: '4px 10px', borderRadius: '100px',
-                      border: 'none', cursor: 'pointer',
-                      background: metric === m.key ? m.color : 'rgba(255,255,255,0.07)',
-                      color: metric === m.key ? 'white' : 'rgba(255,255,255,0.4)',
+                      border: `1px solid ${metric === m.key ? m.color : 'rgba(27,63,228,0.15)'}`,
+                      cursor: 'pointer',
+                      background: metric === m.key ? m.color : 'white',
+                      color: metric === m.key ? 'white' : '#8B95C4',
                     }}>
                     {m.label}
                   </button>
@@ -264,16 +272,16 @@ export default function CreatorDashboard() {
               <AreaChart data={weekData}>
                 <defs>
                   <linearGradient id="cgrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={CHART_METRICS.find(m => m.key === metric)?.color ?? '#1B3FE4'} stopOpacity={0.3} />
+                    <stop offset="5%" stopColor={CHART_METRICS.find(m => m.key === metric)?.color ?? '#1B3FE4'} stopOpacity={0.25} />
                     <stop offset="95%" stopColor={CHART_METRICS.find(m => m.key === metric)?.color ?? '#1B3FE4'} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="date" tickFormatter={fmtWeek} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)' }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(27,63,228,0.06)" vertical={false} />
+                <XAxis dataKey="date" tickFormatter={fmtWeek} tick={{ fontSize: 10, fill: '#8B95C4' }} axisLine={false} tickLine={false} />
                 <YAxis hide />
                 <Tooltip
-                  contentStyle={{ background: '#0D1227', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontSize: '12px' }}
-                  labelStyle={{ color: 'rgba(255,255,255,0.5)' }}
+                  contentStyle={{ background: 'white', border: '1px solid rgba(27,63,228,0.12)', borderRadius: '10px', fontSize: '12px', boxShadow: '0 4px 16px rgba(27,63,228,0.10)' }}
+                  labelStyle={{ color: '#8B95C4' }}
                   formatter={(v: number) => [fmtBRLd(v), CHART_METRICS.find(m => m.key === metric)?.label ?? '']}
                   labelFormatter={l => fmtDate(l)}
                 />
@@ -289,10 +297,10 @@ export default function CreatorDashboard() {
             </ResponsiveContainer>
             {lastWeek && prevWeek && (
               <div style={{ marginTop: '10px', display: 'flex', gap: '16px', fontSize: '11px', flexWrap: 'wrap' }}>
-                <span style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  Última semana: <strong style={{ color: 'white' }}>{fmtBRLd(lastWeek[metric] ?? 0)}</strong>
+                <span style={{ color: '#8B95C4' }}>
+                  Última semana: <strong style={{ color: '#1A1F3C' }}>{fmtBRLd(lastWeek[metric] ?? 0)}</strong>
                 </span>
-                <span style={{ color: diff >= 0 ? '#34D399' : '#F87171', fontWeight: 700 }}>
+                <span style={{ color: diff >= 0 ? '#059669' : '#DC2626', fontWeight: 700 }}>
                   {diff >= 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}% vs semana anterior
                 </span>
               </div>
@@ -307,26 +315,26 @@ export default function CreatorDashboard() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <tr style={{ borderBottom: '1px solid rgba(27,63,228,0.08)' }}>
                     {['Semana', 'GMV', 'Comissão'].map((h, i) => (
                       <th key={h} style={{
                         padding: '8px 10px', textAlign: i > 0 ? 'right' : 'left',
-                        fontWeight: 700, color: 'rgba(255,255,255,0.25)', fontSize: '10px',
+                        fontWeight: 700, color: '#8B95C4', fontSize: '10px',
                         letterSpacing: '0.08em', textTransform: 'uppercase',
                       }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {[...weekData].reverse().filter(w => w.gmv > 0).map((w, i) => (
-                    <tr key={w.date} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <td style={{ padding: '9px 10px', color: 'rgba(255,255,255,0.5)', fontFamily: "'DM Mono', monospace", fontSize: '11px' }}>
+                  {[...weekData].reverse().filter(w => w.gmv > 0).map((w) => (
+                    <tr key={w.date} style={{ borderBottom: '1px solid rgba(27,63,228,0.05)' }}>
+                      <td style={{ padding: '9px 10px', color: '#8B95C4', fontFamily: "'DM Mono', monospace", fontSize: '11px' }}>
                         {fmtDate(w.date)}
                       </td>
-                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, color: 'white', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 700, color: '#1A1F3C', fontVariantNumeric: 'tabular-nums' }}>
                         {fmtBRL(w.gmv)}
                       </td>
-                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 600, color: '#FBBF24', fontVariantNumeric: 'tabular-nums' }}>
+                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 600, color: '#D97706', fontVariantNumeric: 'tabular-nums' }}>
                         {fmtBRL(w.comissao)}
                       </td>
                     </tr>
@@ -339,9 +347,9 @@ export default function CreatorDashboard() {
 
         {/* Nota de cálculo */}
         <div style={{
-          background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+          background: 'rgba(27,63,228,0.04)', border: '1px solid rgba(27,63,228,0.09)',
           borderRadius: '10px', padding: '10px 14px',
-          fontSize: '11px', color: 'rgba(255,255,255,0.25)',
+          fontSize: '11px', color: '#8B95C4',
         }}>
           💡 Os valores de GMV e comissão são estimativas baseadas nos relatórios semanais do TikTok Partner Center.
           A comissão mostrada é a estimada pelo TikTok — valores finais podem variar.
@@ -356,26 +364,27 @@ export default function CreatorDashboard() {
 function KpiCard({ label, value, sub, color, accent }: { label: string; value: string; sub: string; color: string; accent?: boolean }) {
   return (
     <div style={{
-      background: accent ? `linear-gradient(135deg, ${color}18, ${color}06)` : 'rgba(255,255,255,0.03)',
-      border: `1px solid ${accent ? color + '30' : 'rgba(255,255,255,0.07)'}`,
+      background: accent ? `linear-gradient(135deg, ${color}10, white)` : 'white',
+      border: `1px solid ${accent ? color + '25' : 'rgba(27,63,228,0.09)'}`,
       borderRadius: '14px', padding: '1rem 1.1rem',
+      boxShadow: accent ? `0 4px 20px ${color}12` : '0 1px 8px rgba(27,63,228,0.05)',
     }}>
-      <div style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 700, color: '#8B95C4', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>
         {label}
       </div>
       <div style={{ fontSize: '1.4rem', fontWeight: 800, color, letterSpacing: '-0.02em', lineHeight: 1, marginBottom: '4px' }}>
         {value}
       </div>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>{sub}</div>
+      <div style={{ fontSize: '10px', color: '#B0BFEE', fontWeight: 500 }}>{sub}</div>
     </div>
   )
 }
 
 function LoadingScreen() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#080C1A', flexDirection: 'column', gap: '14px' }}>
-      <div style={{ width: '36px', height: '36px', border: '2px solid rgba(255,255,255,0.08)', borderTop: '2px solid #1B3FE4', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>Carregando seu painel...</div>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#F4F6FB', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ width: '36px', height: '36px', border: '2px solid rgba(27,63,228,0.12)', borderTop: '2px solid #1B3FE4', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ fontSize: '13px', color: '#8B95C4', fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>Carregando seu painel...</div>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   )
@@ -383,39 +392,40 @@ function LoadingScreen() {
 
 function NotFoundScreen({ handle, onLogout }: { handle: string; onLogout: () => void }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#080C1A', flexDirection: 'column', gap: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#F4F6FB', flexDirection: 'column', gap: '12px', fontFamily: "'DM Sans', sans-serif" }}>
       <div style={{ fontSize: '2rem' }}>🔍</div>
-      <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Creator @{handle} não encontrado</div>
-      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.25)' }}>Verifique se o @ está correto ou contate a Amplify</div>
+      <div style={{ fontSize: '14px', color: '#1A1F3C', fontWeight: 600 }}>Creator @{handle} não encontrado</div>
+      <div style={{ fontSize: '12px', color: '#8B95C4' }}>Verifique se o @ está correto ou contate a Amplify</div>
       <button onClick={onLogout} style={{ marginTop: '8px', ...btnGhost }}>← Voltar ao login</button>
     </div>
   )
 }
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.07)',
+  background: 'white',
+  border: '1px solid rgba(27,63,228,0.09)',
   borderRadius: '16px', padding: '1.25rem',
+  boxShadow: '0 1px 8px rgba(27,63,228,0.05)',
 }
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.35)',
+  fontSize: '11px', fontWeight: 700, color: '#8B95C4',
   letterSpacing: '0.08em', textTransform: 'uppercase',
 }
 
 const dateInputStyle: React.CSSProperties = {
   fontSize: '11px', padding: '4px 8px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)',
-  color: 'white', outline: 'none', fontFamily: "'DM Sans', sans-serif",
+  border: '1px solid rgba(27,63,228,0.15)', background: 'white',
+  color: '#1A1F3C', outline: 'none', fontFamily: "'DM Sans', sans-serif",
 }
 
 const btnPrimary: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, padding: '4px 12px', borderRadius: '8px',
+  fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: '8px',
   border: 'none', background: '#1B3FE4', color: 'white', cursor: 'pointer',
 }
 
 const btnGhost: React.CSSProperties = {
-  fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '8px',
-  border: '1px solid rgba(255,255,255,0.1)', background: 'transparent',
-  color: 'rgba(255,255,255,0.5)', cursor: 'pointer',
+  fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: '8px',
+  border: '1px solid rgba(27,63,228,0.15)', background: 'white',
+  color: '#6B78B0', cursor: 'pointer',
 }
