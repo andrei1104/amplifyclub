@@ -55,9 +55,10 @@ export default function Admin() {
   const [search,    setSearch]    = useState('')
   const [selected,  setSelected]  = useState<Creator | null>(null)
   const [metric,    setMetric]    = useState<'gmv' | 'amplifyRevenue'>('gmv')
-  const [startDate, setStartDate] = useState('')
-  const [endDate,   setEndDate]   = useState('')
-  const [applied,   setApplied]   = useState({ start: '', end: '' })
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const [startDate, setStartDate] = useState('2025-01-01')
+  const [endDate,   setEndDate]   = useState(todayStr)
+  const [applied,   setApplied]   = useState({ start: '2025-01-01', end: todayStr })
   const [sortBy,    setSortBy]    = useState<'gmv' | 'comissao' | 'nome'>('gmv')
 
   const load = useCallback(() => {
@@ -148,7 +149,7 @@ export default function Admin() {
           <button onClick={() => { setApplied({ start: startDate, end: endDate }) }}
             style={btnPrimary}>Filtrar</button>
           {(applied.start || applied.end) && (
-            <button onClick={() => { setStartDate(''); setEndDate(''); setApplied({ start: '', end: '' }) }}
+            <button onClick={() => { setStartDate('2025-01-01'); setEndDate(new Date().toISOString().slice(0,10)); setApplied({ start: '2025-01-01', end: new Date().toISOString().slice(0,10) }) }}
               style={btnGhost}>×</button>
           )}
           <button onClick={() => { sessionStorage.clear(); router.push('/') }}
