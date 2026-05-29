@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse, NextRequest } from 'next/server'
 import { Client } from '@notionhq/client'
 import { ADMIN_LOGIN, ADMIN_PASSWORD, CREATOR_PASSWORD } from '../../lib/auth'
