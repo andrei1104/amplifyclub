@@ -56,9 +56,10 @@ export default function Admin() {
   const [selected,  setSelected]  = useState<Creator | null>(null)
   const [metric,    setMetric]    = useState<'gmv' | 'amplifyRevenue'>('gmv')
   const todayStr = new Date().toISOString().slice(0, 10)
-  const [startDate, setStartDate] = useState('2025-01-01')
+  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const [startDate, setStartDate] = useState(fourWeeksAgo)
   const [endDate,   setEndDate]   = useState(todayStr)
-  const [applied,   setApplied]   = useState({ start: '2025-01-01', end: todayStr })
+  const [applied,   setApplied]   = useState({ start: fourWeeksAgo, end: todayStr })
   const [sortBy,    setSortBy]    = useState<'gmv' | 'comissao' | 'nome'>('gmv')
 
   const load = useCallback(() => {
@@ -149,7 +150,7 @@ export default function Admin() {
           <button onClick={() => { setApplied({ start: startDate, end: endDate }) }}
             style={btnPrimary}>Filtrar</button>
           {(applied.start || applied.end) && (
-            <button onClick={() => { setStartDate('2025-01-01'); setEndDate(new Date().toISOString().slice(0,10)); setApplied({ start: '2025-01-01', end: new Date().toISOString().slice(0,10) }) }}
+            <button onClick={() => { const t = new Date().toISOString().slice(0,10); const f = new Date(Date.now()-28*24*60*60*1000).toISOString().slice(0,10); setStartDate(f); setEndDate(t); setApplied({ start: f, end: t }) }}
               style={btnGhost}>×</button>
           )}
           <button onClick={() => { sessionStorage.clear(); router.push('/') }}

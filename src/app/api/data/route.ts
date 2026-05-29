@@ -95,8 +95,17 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
       `&key=${GDRIVE_KEY}`
 
     const listRes = await fetch(listUrl)
-    if (!listRes.ok) return { weeklySalesMap: {}, weeklyAmplify: {} }
-    const { files } = await listRes.json()
+    if (!listRes.ok) {
+      const errText = await listRes.text()
+      console.error('[Drive] List failed:', listRes.status, errText)
+      return { weeklySalesMap: {}, weeklyAmplify: {} }
+    }
+    const listJson = await listRes.json()
+    const files = listJson.files
+    console.log('[Drive] FOLDER_ID:', FOLDER_ID)
+    console.log('[Drive] sinceDate:', sinceDate, 'untilDate:', untilDate)
+    console.log('[Drive] Total files found:', files?.length ?? 0)
+    if (files?.length) console.log('[Drive] File names:', files.map((f: any) => f.name))
     if (!files?.length) return { weeklySalesMap: {}, weeklyAmplify: {} }
 
     // Filtra arquivos no range — inclui se há qualquer sobreposição com o período
@@ -111,6 +120,7 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
       return mod >= sinceDate && mod <= untilDate
     })
 
+    console.log('[Drive] Relevant files after date filter:', relevant.length, relevant.map((f: any) => f.name))
     if (!relevant.length) return { weeklySalesMap: {}, weeklyAmplify: {} }
 
     const processed = await Promise.all(
@@ -127,6 +137,7 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
           if (rows.length < 2) return null
 
           const header = rows[0] as string[]
+          console.log('[Drive] File:', file.name, '| Rows:', rows.length, '| Header:', header.slice(0, 5))
           const idx    = (n: string) => header.findIndex(h => String(h).toLowerCase().includes(n.toLowerCase()))
 
           // "Nome do criador" — formato real do TikTok Partner Center
@@ -141,6 +152,7 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
           // Comissão — pode não existir no relatório, fica 0 se ausente
           const iCom = idx('comissão estimada') !== -1 ? idx('comissão estimada') : idx('comiss')
 
+          console.log('[Drive] iNome:', iNome, 'iGmv:', iGmv, 'iCom:', iCom)
           // Linha de resumo: identifica pela coluna 0 = "Resumo"
           const resumoRow = rows.find(r => String(r[0]).toLowerCase() === 'resumo')
 
@@ -166,6 +178,7 @@ async function fetchDriveXlsx(sinceDate: string, untilDate: string) {
             .filter(r => r.creator && r.creator !== '-' && r.creator !== '--')
 
           const m = file.name.match(/(\d{4}-\d{2}-\d{2})_(\d{4}-\d{2}-\d{2})/)
+          console.log('[Drive] Parsed', file.name, '→ sales:', sales.length, '| amplifyGmv:', amplifyGmv, '| sample:', sales.slice(0, 2))
           return { weekStart: m?.[1], weekEnd: m?.[2], sales, amplifyGmv, amplifyCom }
         } catch {
           return null
